@@ -3,6 +3,7 @@
   --bg-panel: #16213e;
   --bg-key: #1a1a3a;
   --bg-key-hover: #2a2a5a;
+  --bg-key-used: #2b2b31;
   --bg-punct: #12122a;
   --bg-subtitle: #2a2a4a;
   --bg-badge: #2a2a4a;
@@ -57,6 +58,7 @@
   --bg-panel: #ffffff;
   --bg-key: #e8ecf1;
   --bg-key-hover: #d0d4e0;
+  --bg-key-used: #dedede;
   --bg-punct: #e0e4ea;
   --bg-subtitle: #e0e0e0;
   --bg-badge: #e8ecf1;
@@ -332,9 +334,9 @@ body {
 }
 
 .key-chip.done {
-  border-color: var(--correct);
-  color: var(--correct);
-  background: var(--bg-feedback-correct);
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+  background: var(--bg-key-used);
 }
 
 .key-chip.error {
@@ -586,9 +588,10 @@ body {
 }
 
 .vk-key.feedback-correct {
-  border-color: var(--correct);
-  background: var(--bg-feedback-correct);
-  box-shadow: 0 0 16px rgba(68, 204, 68, 0.4);
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+  background: var(--bg-key-used);
+  box-shadow: 0 0 16px rgba(128, 128, 128, 0.35);
 }
 
 .vk-key.feedback-wrong {
@@ -606,7 +609,9 @@ body {
 }
 
 .vk-key.used {
-  border-color: var(--correct);
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+  background: var(--bg-key-used);
   opacity: 0.6;
 }
 
