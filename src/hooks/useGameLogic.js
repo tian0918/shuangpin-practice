@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { PINYIN_DB, LEVEL_THRESHOLDS } from '../data/pinyinDb'
 import { pickQuestion } from '../utils/questionPicker'
+import { applyInputMode } from '../utils/inputMode'
 
-export default function useGameLogic() {
+export default function useGameLogic(inputMode = 'shuangpin') {
   const [level, setLevel] = useState(3)
   const [question, setQuestion] = useState(null)
   const [keyIndex, setKeyIndex] = useState(0)
@@ -91,7 +92,8 @@ export default function useGameLogic() {
 
   const nextQuestion = useCallback(() => {
     const pool = getPool(levelRef.current)
-    const q = pickQuestion(pool, errorMapRef.current, levelRef.current, historyRef.current)
+    const picked = pickQuestion(pool, errorMapRef.current, levelRef.current, historyRef.current)
+    const q = applyInputMode(picked, inputMode)
     questionRef.current = q
     keyIndexRef.current = 0
     charIndexRef.current = 0
@@ -99,7 +101,7 @@ export default function useGameLogic() {
     setKeyIndex(0)
     setCharIndex(0)
     setLastFeedback(null)
-  }, [getPool])
+  }, [getPool, inputMode])
 
   const startTimer = useCallback(() => {
     if (timerRef.current || startTimeRef.current !== null) return

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import useGameLogic from './hooks/useGameLogic'
 import BreathLight from './components/BreathLight'
 import QuestionPanel from './components/QuestionPanel'
@@ -6,6 +6,7 @@ import StatsPanel from './components/StatsPanel'
 import VirtualKeyboard from './components/VirtualKeyboard'
 import ResultModal from './components/ResultModal'
 import SettingsMenu from './components/SettingsMenu'
+import { INPUT_MODES } from './utils/inputMode'
 import './App.css'
 
 function getInitialTheme() {
@@ -13,6 +14,7 @@ function getInitialTheme() {
 }
 
 const DEFAULT_SETTINGS = {
+  inputMode: INPUT_MODES.SHUANGPIN,
   breathLight: true,
   showVirtualKeyboard: true,
   showKeySequence: true,
@@ -44,8 +46,8 @@ export default function App() {
     setTheme(t => t === 'dark' ? 'light' : 'dark')
   }, [])
 
-  const updateSetting = useCallback((name, enabled) => {
-    setSettings(current => ({ ...current, [name]: enabled }))
+  const updateSetting = useCallback((name, value) => {
+    setSettings(current => ({ ...current, [name]: value }))
   }, [])
 
   const {
@@ -53,7 +55,18 @@ export default function App() {
     accuracy, speed, elapsed, level, levelLabel,
     levelProgress, levelMax, lastFeedback, isFlashing,
     handleKey, restart, finished, finish, dismissResult, errorRecords,
-  } = useGameLogic()
+  } = useGameLogic(settings.inputMode)
+
+  const previousInputModeRef = useRef(settings.inputMode)
+  useEffect(() => {
+    if (previousInputModeRef.current === settings.inputMode) return
+    previousInputModeRef.current = settings.inputMode
+    restart()
+  }, [settings.inputMode, restart])
+
+  const isFullPinyin = settings.inputMode === INPUT_MODES.FULL_PINYIN
+  const title = isFullPinyin ? '全拼练习' : '小鹤双拼练习'
+  const modeLabel = isFullPinyin ? '全拼模式' : '双拼模式'
 
   const onKeyDown = useCallback((e) => {
     if (e.repeat || finished) return
@@ -74,8 +87,8 @@ export default function App() {
     return (
       <div className="app">
         <header className="app-header">
-          <h1 className="app-title">小鹤双拼练习</h1>
-          <span className="app-subtitle">双拼模式</span>
+          <h1 className="app-title">{title}</h1>
+          <span className="app-subtitle">{modeLabel}</span>
           <div className="header-right">
             <button className="theme-toggle" onClick={toggleTheme}>
               {theme === 'dark' ? '☀️ 浅色' : '🌙 深色'}
@@ -104,8 +117,8 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">小鹤双拼练习</h1>
-        <span className="app-subtitle">双拼模式</span>
+        <h1 className="app-title">{title}</h1>
+        <span className="app-subtitle">{modeLabel}</span>
         <div className="header-right">
           <button className="theme-toggle" onClick={toggleTheme}>
             {theme === 'dark' ? '☀️ 浅色' : '🌙 深色'}
@@ -146,6 +159,7 @@ export default function App() {
 
           {settings.showVirtualKeyboard && (
             <VirtualKeyboard
+              inputMode={settings.inputMode}
               question={question}
               keyIndex={keyIndex}
               lastFeedback={lastFeedback}

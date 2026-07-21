@@ -242,6 +242,68 @@ body {
   padding-top: 4px;
 }
 
+.input-mode-setting {
+  margin: 14px 0 6px;
+  padding: 0 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border-panel);
+}
+
+.input-mode-setting legend {
+  margin-bottom: 9px;
+  padding: 0 2px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.input-mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.input-mode-option {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  padding: 10px;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid var(--border-key);
+  border-radius: 10px;
+  background: var(--bg-key);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.input-mode-option.active {
+  border-color: var(--accent);
+  background: var(--bg-accent-soft);
+}
+
+.input-mode-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.input-mode-option:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.input-mode-option strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.input-mode-option small {
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .setting-option {
   position: relative;
   display: flex;
@@ -516,16 +578,9 @@ body {
 }
 
 .key-chip.done {
-<<<<<<< HEAD
   border-color: var(--text-secondary);
   color: var(--text-secondary);
   background: var(--bg-key-used);
-=======
-  border-color: transparent;
-  color: var(--text-dim);
-  background: transparent;
-  opacity: 0.55;
->>>>>>> 0f3d764 (feat: 优化练习体验并添加显示设置)
 }
 
 .key-chip.error {
@@ -891,16 +946,10 @@ body {
 }
 
 .vk-key.feedback-correct {
-<<<<<<< HEAD
   border-color: var(--text-secondary);
   color: var(--text-secondary);
   background: var(--bg-key-used);
   box-shadow: 0 0 16px rgba(128, 128, 128, 0.35);
-=======
-  border-color: var(--correct);
-  background: var(--bg-feedback-correct);
-  box-shadow: 0 3px 0 var(--correct), 0 0 18px rgba(68, 204, 68, 0.3);
->>>>>>> 0f3d764 (feat: 优化练习体验并添加显示设置)
 }
 
 .vk-key.feedback-wrong {
@@ -917,14 +966,10 @@ body {
 }
 
 .vk-key.used {
-<<<<<<< HEAD
   border-color: var(--text-secondary);
   color: var(--text-secondary);
   background: var(--bg-key-used);
   opacity: 0.6;
-=======
-  opacity: 0.42;
->>>>>>> 0f3d764 (feat: 优化练习体验并添加显示设置)
 }
 
 .vk-key-top {

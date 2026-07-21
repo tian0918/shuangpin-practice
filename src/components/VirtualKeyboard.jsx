@@ -1,6 +1,7 @@
 import { KEYBOARD_ROWS } from '../data/xiaoheMapping'
 
-export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKeyClick }) {
+export default function VirtualKeyboard({ inputMode = 'shuangpin', question, keyIndex, lastFeedback, onKeyClick }) {
+  const isFullPinyin = inputMode === 'fullPinyin'
   const expectedKey = question?.keys?.[keyIndex]?.toLowerCase()
 
   const getKeyClass = (k) => {
@@ -38,8 +39,10 @@ export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKe
     <div className="virtual-keyboard">
       <div className="keyboard-header">
         <div>
-          <span className="keyboard-title">小鹤键位</span>
-          <span className="keyboard-hint">键帽下方为韵母</span>
+          <span className="keyboard-title">{isFullPinyin ? '全拼键盘' : '小鹤键位'}</span>
+          <span className="keyboard-hint">
+            {isFullPinyin ? '按完整拼音顺序输入' : '键帽下方为韵母'}
+          </span>
         </div>
         <span className="keyboard-target-label">
           目标键 <strong>{expectedKey?.toUpperCase() || '—'}</strong>
@@ -58,7 +61,7 @@ export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKe
                   onClick={() => handleClick(k)}
                 >
                   <span className="vk-key-top">{k.labelTop}</span>
-                  {k.labelBottom && !k.wide && (
+                  {!isFullPinyin && k.labelBottom && !k.wide && (
                     <span className="vk-key-bottom">{k.labelBottom}</span>
                   )}
                 </button>

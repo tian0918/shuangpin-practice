@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { INPUT_MODES } from '../utils/inputMode'
+
+const INPUT_MODE_OPTIONS = [
+  { value: INPUT_MODES.SHUANGPIN, label: '小鹤双拼', description: '每个音节使用两个按键' },
+  { value: INPUT_MODES.FULL_PINYIN, label: '全拼', description: '输入完整的无声调拼音' },
+]
 
 const OPTIONS = [
   { key: 'breathLight', label: '呼吸灯', description: '显示屏幕边缘的练习反馈' },
-  { key: 'showVirtualKeyboard', label: '小鹤键位图', description: '显示主界面下方的虚拟键盘' },
+  { key: 'showVirtualKeyboard', label: '虚拟键盘', description: '显示主界面下方的按键提示' },
   { key: 'showKeySequence', label: '按键序列', description: '在题目下方显示完整按键' },
 ]
 
@@ -47,6 +53,27 @@ export default function SettingsMenu({ settings, onChange }) {
             <strong>练习设置</strong>
             <span>自动保存</span>
           </div>
+          <fieldset className="input-mode-setting">
+            <legend>输入模式</legend>
+            <div className="input-mode-options">
+              {INPUT_MODE_OPTIONS.map(option => (
+                <label
+                  className={`input-mode-option ${settings.inputMode === option.value ? 'active' : ''}`}
+                  key={option.value}
+                >
+                  <input
+                    type="radio"
+                    name="inputMode"
+                    value={option.value}
+                    checked={settings.inputMode === option.value}
+                    onChange={event => onChange('inputMode', event.target.value)}
+                  />
+                  <strong>{option.label}</strong>
+                  <small>{option.description}</small>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="settings-options">
             {OPTIONS.map(option => (
               <label className="setting-option" key={option.key}>
