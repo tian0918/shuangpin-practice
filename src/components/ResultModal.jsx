@@ -1,6 +1,6 @@
 export default function ResultModal({
-  correctCount, errorCount, accuracy, speed,
-  elapsed, level, levelLabel, levelProgress, levelMax,
+  correctCount, errorCount, completedQuestions, completedChars, accuracy, speed,
+  elapsed, level, levelLabel,
   errorRecords, onRestart, onDismiss,
 }) {
   const fmtTime = (ms) => {
@@ -10,8 +10,6 @@ export default function ResultModal({
     return `${m}:${String(sec).padStart(2, '0')}`
   }
 
-  const totalQ = correctCount + errorCount
-
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -20,14 +18,18 @@ export default function ResultModal({
         <div className="modal-stats">
           <div className="modal-stat-row">
             <span className="modal-stat-label">完成题数</span>
-            <span className="modal-stat-value">{totalQ}</span>
+            <span className="modal-stat-value">{completedQuestions}</span>
           </div>
           <div className="modal-stat-row">
-            <span className="modal-stat-label">正确</span>
+            <span className="modal-stat-label">完成字数</span>
+            <span className="modal-stat-value">{completedChars}</span>
+          </div>
+          <div className="modal-stat-row">
+            <span className="modal-stat-label">正确按键</span>
             <span className="modal-stat-value correct">{correctCount}</span>
           </div>
           <div className="modal-stat-row">
-            <span className="modal-stat-label">错误</span>
+            <span className="modal-stat-label">错误按键</span>
             <span className="modal-stat-value error">{errorCount}</span>
           </div>
           <div className="modal-stat-row">

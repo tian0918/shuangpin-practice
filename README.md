@@ -12,9 +12,17 @@
 
 ## 本地运行
 
+需要 Node.js 20.17 或更高版本。
+
 ```bash
 npm install
 npm run dev
+```
+
+## 测试
+
+```bash
+npm test
 ```
 
 ## 构建部署

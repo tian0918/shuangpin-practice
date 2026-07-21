@@ -5,33 +5,59 @@ import QuestionPanel from './components/QuestionPanel'
 import StatsPanel from './components/StatsPanel'
 import VirtualKeyboard from './components/VirtualKeyboard'
 import ResultModal from './components/ResultModal'
+import SettingsMenu from './components/SettingsMenu'
 import './App.css'
 
 function getInitialTheme() {
   try { return localStorage.getItem('shuangpin-theme') || 'dark' } catch { return 'dark' }
 }
 
+const DEFAULT_SETTINGS = {
+  breathLight: true,
+  showVirtualKeyboard: true,
+  showKeySequence: true,
+}
+
+function getInitialSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('shuangpin-settings'))
+    return { ...DEFAULT_SETTINGS, ...saved }
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
 export default function App() {
   const [theme, setTheme] = useState(getInitialTheme)
+  const [settings, setSettings] = useState(getInitialSettings)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     try { localStorage.setItem('shuangpin-theme', theme) } catch {}
   }, [theme])
 
+  useEffect(() => {
+    try { localStorage.setItem('shuangpin-settings', JSON.stringify(settings)) } catch {}
+  }, [settings])
+
   const toggleTheme = useCallback(() => {
     setTheme(t => t === 'dark' ? 'light' : 'dark')
   }, [])
 
+  const updateSetting = useCallback((name, enabled) => {
+    setSettings(current => ({ ...current, [name]: enabled }))
+  }, [])
+
   const {
-    question, keyIndex, correctCount, errorCount,
+    question, keyIndex, correctCount, errorCount, completedQuestions, completedChars,
     accuracy, speed, elapsed, level, levelLabel,
     levelProgress, levelMax, lastFeedback, isFlashing,
-    handleKey, restart, paused, finished, finish, dismissResult, errorRecords,
+    handleKey, restart, finished, finish, dismissResult, errorRecords,
   } = useGameLogic()
 
   const onKeyDown = useCallback((e) => {
     if (e.repeat || finished) return
+    if (e.target instanceof Element && e.target.closest('button, input')) return
     const key = e.key.toLowerCase()
     if (key.length === 1 && /^[a-z;,'\.\/\[\] ]$/.test(key)) {
       e.preventDefault()
@@ -54,18 +80,19 @@ export default function App() {
             <button className="theme-toggle" onClick={toggleTheme}>
               {theme === 'dark' ? '☀️ 浅色' : '🌙 深色'}
             </button>
+            <SettingsMenu settings={settings} onChange={updateSetting} />
           </div>
         </header>
         <ResultModal
           correctCount={correctCount}
           errorCount={errorCount}
+          completedQuestions={completedQuestions}
+          completedChars={completedChars}
           accuracy={accuracy}
           speed={speed}
           elapsed={elapsed}
           level={level}
           levelLabel={levelLabel}
-          levelProgress={levelProgress}
-          levelMax={levelMax}
           errorRecords={errorRecords}
           onRestart={restart}
           onDismiss={dismissResult}
@@ -83,10 +110,13 @@ export default function App() {
           <button className="theme-toggle" onClick={toggleTheme}>
             {theme === 'dark' ? '☀️ 浅色' : '🌙 深色'}
           </button>
+          <SettingsMenu settings={settings} onChange={updateSetting} />
         </div>
       </header>
 
-      <BreathLight accuracy={accuracy} speed={speed} isFlashing={isFlashing} theme={theme} />
+      {settings.breathLight && (
+        <BreathLight accuracy={accuracy} speed={speed} isFlashing={isFlashing} theme={theme} />
+      )}
 
       <main className="app-main">
         <section className="center-section">
@@ -94,13 +124,14 @@ export default function App() {
             <QuestionPanel
               question={question}
               keyIndex={keyIndex}
-              charIndex={0}
               lastFeedback={lastFeedback}
-              paused={paused}
+              showKeySequence={settings.showKeySequence}
             />
             <StatsPanel
               correctCount={correctCount}
               errorCount={errorCount}
+              completedQuestions={completedQuestions}
+              completedChars={completedChars}
               accuracy={accuracy}
               speed={speed}
               elapsed={elapsed}
@@ -113,13 +144,14 @@ export default function App() {
             />
           </div>
 
-          <VirtualKeyboard
-            question={question}
-            keyIndex={keyIndex}
-            lastFeedback={lastFeedback}
-            onKeyClick={handleKey}
-            paused={paused}
-          />
+          {settings.showVirtualKeyboard && (
+            <VirtualKeyboard
+              question={question}
+              keyIndex={keyIndex}
+              lastFeedback={lastFeedback}
+              onKeyClick={handleKey}
+            />
+          )}
         </section>
       </main>
     </div>

@@ -1,6 +1,6 @@
 import { KEYBOARD_ROWS } from '../data/xiaoheMapping'
 
-export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKeyClick, paused }) {
+export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKeyClick }) {
   const expectedKey = question?.keys?.[keyIndex]?.toLowerCase()
 
   const getKeyClass = (k) => {
@@ -8,8 +8,6 @@ export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKe
     if (k.disabled) cls += ' disabled'
     if (k.punct) cls += ' vk-punct'
     if (k.wide) cls += ' vk-wide'
-    if (paused) return cls
-
     if (lastFeedback) {
       const lowerK = k.key
       if (lastFeedback.status === 'correct' && lowerK === lastFeedback.key.toLowerCase()) {
@@ -20,41 +18,55 @@ export default function VirtualKeyboard({ question, keyIndex, lastFeedback, onKe
       }
     }
 
-    if (expectedKey && k.key === expectedKey && !lastFeedback && !k.punct) {
+    if (expectedKey && k.key === expectedKey && !k.punct) {
       cls += ' target'
     }
 
-    if (question && question.keys.includes(k.key) && !lastFeedback && !k.punct) {
-      const idx = question.keys.indexOf(k.key)
-      if (idx < keyIndex) cls += ' used'
+    if (question && !k.punct && question.keys.slice(0, keyIndex).includes(k.key)) {
+      cls += ' used'
     }
 
     return cls
   }
 
   const handleClick = (k) => {
-    if (k.disabled || paused) return
+    if (k.disabled) return
     onKeyClick(k.key)
   }
 
   return (
     <div className="virtual-keyboard">
-      {KEYBOARD_ROWS.map((row, ri) => (
-        <div className={`vk-row ${ri === 3 ? 'vk-row-space' : ''}`} key={ri}>
-          {row.map((k) => (
-            <button
-              key={k.key}
-              className={getKeyClass(k)}
-              onClick={() => handleClick(k)}
-            >
-              <span className="vk-key-top">{k.labelTop}</span>
-              {k.labelBottom && !k.wide && (
-                <span className="vk-key-bottom">{k.labelBottom}</span>
-              )}
-            </button>
+      <div className="keyboard-header">
+        <div>
+          <span className="keyboard-title">小鹤键位</span>
+          <span className="keyboard-hint">键帽下方为韵母</span>
+        </div>
+        <span className="keyboard-target-label">
+          目标键 <strong>{expectedKey?.toUpperCase() || '—'}</strong>
+        </span>
+      </div>
+      <div className="keyboard-scroll">
+        <div className="keyboard-layout">
+          {KEYBOARD_ROWS.map((row, ri) => (
+            <div className={`vk-row ${ri === 3 ? 'vk-row-space' : ''}`} key={ri}>
+              {row.map((k) => (
+                <button
+                  type="button"
+                  aria-label={`按键 ${k.labelTop}`}
+                  key={k.key}
+                  className={getKeyClass(k)}
+                  onClick={() => handleClick(k)}
+                >
+                  <span className="vk-key-top">{k.labelTop}</span>
+                  {k.labelBottom && !k.wide && (
+                    <span className="vk-key-bottom">{k.labelBottom}</span>
+                  )}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
-      ))}
+      </div>
     </div>
   )
 }

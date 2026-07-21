@@ -1,4 +1,4 @@
-import { pinyinToKeys } from './xiaoheMapping'
+import { pinyinToKeys } from './xiaoheMapping.js'
 
 function single(pinyin, char, level) {
   const keys = pinyinToKeys(pinyin)
@@ -26,7 +26,7 @@ function sentence(chars, level) {
   const keys = items.flatMap(c => c.keys)
   const pinyin = items.map(c => c.pinyin).join(' ')
   const content = items.map(c => c.char).join('')
-  return { content, type: level === 4 ? '长句' : 'short', pinyin, keys, chars: items, level }
+  return { content, type: level === 4 ? 'sentence' : 'short', pinyin, keys, chars: items, level }
 }
 
 const SINGLE_CHARS = [

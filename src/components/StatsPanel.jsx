@@ -1,5 +1,5 @@
 export default function StatsPanel({
-  correctCount, errorCount, accuracy, speed,
+  correctCount, errorCount, completedQuestions, completedChars, accuracy, speed,
   elapsed, level, levelLabel, levelProgress, levelMax,
   onRestart, onFinish,
 }) {
@@ -14,34 +14,39 @@ export default function StatsPanel({
 
   return (
     <div className="stats-panel">
-      <div className="stats-header">统计</div>
+      <div className="stats-header">本局表现</div>
 
-      <div className="stats-grid">
-        <div className="stat-item">
-          <span className="stat-label">正确</span>
-          <span className="stat-value correct">{correctCount}</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-label">错误</span>
-          <span className="stat-value error">{errorCount}</span>
-        </div>
-        <div className="stat-item">
+      <div className="stats-primary">
+        <div className="primary-stat">
           <span className="stat-label">正确率</span>
-          <span className="stat-value">
-            <span className="stat-num">{accuracy}</span>
-            <span className="stat-unit">%</span>
-          </span>
+          <span className="primary-stat-value">{accuracy}<small>%</small></span>
+        </div>
+        <div className="primary-stat speed-stat">
+          <span className="stat-label">速度</span>
+          <span className="primary-stat-value">{speed}<small>字/分</small></span>
+        </div>
+      </div>
+
+      <div className="stats-grid stats-secondary">
+        <div className="stat-item">
+          <span className="stat-label">完成题数</span>
+          <span className="stat-value">{completedQuestions}<small> 题</small></span>
         </div>
         <div className="stat-item">
-          <span className="stat-label">速度</span>
-          <span className="stat-value">
-            <span className="stat-num">{speed}</span>
-            <span className="stat-unit">字/分</span>
-          </span>
+          <span className="stat-label">完成字数</span>
+          <span className="stat-value">{completedChars}<small> 字</small></span>
         </div>
         <div className="stat-item">
           <span className="stat-label">用时</span>
           <span className="stat-value">{fmtTime(elapsed)}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">按键</span>
+          <span className="stat-value keystroke-summary">
+            <span className="correct">{correctCount}</span>
+            <span className="stat-divider"> / </span>
+            <span className="error">{errorCount}</span>
+          </span>
         </div>
       </div>
 
@@ -58,12 +63,14 @@ export default function StatsPanel({
         )}
       </div>
 
-      <button className="restart-btn" onClick={onFinish}>
-        结束本局
-      </button>
-      <button className="restart-btn secondary" onClick={onRestart}>
-        重新开始
-      </button>
+      <div className="stats-actions">
+        <button className="restart-btn" onClick={onFinish}>
+          结束本局
+        </button>
+        <button className="restart-btn secondary" onClick={onRestart}>
+          重新开始
+        </button>
+      </div>
     </div>
   )
 }

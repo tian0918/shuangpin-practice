@@ -10,21 +10,19 @@ export default function useGameLogic() {
   const [correctCount, setCorrectCount] = useState(0)
   const [errorCount, setErrorCount] = useState(0)
   const [totalKeystrokes, setTotalKeystrokes] = useState(0)
+  const [completedQuestions, setCompletedQuestions] = useState(0)
+  const [completedChars, setCompletedChars] = useState(0)
   const [levelQuestions, setLevelQuestions] = useState(0)
   const [lastFeedback, setLastFeedback] = useState(null)
-  const [gameId, setGameId] = useState(0)
-  const [startTime, setStartTime] = useState(Date.now())
   const [elapsed, setElapsed] = useState(0)
   const [isFlashing, setIsFlashing] = useState(false)
-  const [paused, setPaused] = useState(false)
   const [finished, setFinished] = useState(false)
-  const [finishTime, setFinishTime] = useState(null)
   const [errorRecords, setErrorRecords] = useState([])
 
   const errorMapRef = useRef({})
   const historyRef = useRef([])
   const timerRef = useRef(null)
-  const startTimeRef = useRef(Date.now())
+  const startTimeRef = useRef(null)
   const questionRef = useRef(null)
   const keyIndexRef = useRef(0)
   const charIndexRef = useRef(0)
@@ -33,12 +31,14 @@ export default function useGameLogic() {
   const keystrokesRef = useRef(0)
   const levelRef = useRef(3)
   const lqRef = useRef(0)
+  const completedQuestionsRef = useRef(0)
+  const completedCharsRef = useRef(0)
   const errorRecordsRef = useRef([])
 
   const accuracy = totalKeystrokes === 0 ? 100
     : Math.round((correctCount / (correctCount + errorCount)) * 100)
   const speed = elapsed === 0 ? 0
-    : Math.round(((correctCount) / (elapsed / 60000)) * 10) / 10
+    : Math.round((completedChars / (elapsed / 60000)) * 10) / 10
 
   function computeCharIndex(ki, q) {
     if (!q || !q.chars) return 0
@@ -67,7 +67,9 @@ export default function useGameLogic() {
       : Math.round((correctRef.current / (correctRef.current + errorRef.current)) * 100)
     if (newAcc < cfg.accuracyReq * 100) return
 
-    setLevel(prev => Math.min(prev + 1, 4))
+    const nextLevel = Math.min(lvl + 1, 4)
+    levelRef.current = nextLevel
+    setLevel(nextLevel)
     setLevelQuestions(0)
     lqRef.current = 0
   }, [])
@@ -80,7 +82,9 @@ export default function useGameLogic() {
       : Math.round((correctRef.current / (correctRef.current + errorRef.current)) * 100)
     if (curAcc >= 30) return
 
-    setLevel(prev => Math.max(prev - 1, 1))
+    const nextLevel = Math.max(lvl - 1, 1)
+    levelRef.current = nextLevel
+    setLevel(nextLevel)
     setLevelQuestions(0)
     lqRef.current = 0
   }, [])
@@ -95,19 +99,22 @@ export default function useGameLogic() {
     setKeyIndex(0)
     setCharIndex(0)
     setLastFeedback(null)
-    setPaused(false)
   }, [getPool])
 
-  useEffect(() => {
+  const startTimer = useCallback(() => {
+    if (timerRef.current || startTimeRef.current !== null) return
+
     const now = Date.now()
     startTimeRef.current = now
-    setStartTime(now)
     setElapsed(0)
     timerRef.current = setInterval(() => {
       setElapsed(Date.now() - startTimeRef.current)
     }, 1000)
-    return () => clearInterval(timerRef.current)
-  }, [gameId])
+  }, [])
+
+  useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current)
+  }, [])
 
   useEffect(() => {
     if (!question && !finished) {
@@ -130,23 +137,28 @@ export default function useGameLogic() {
 
   const handleKey = useCallback((key) => {
     const q = questionRef.current
-    if (!q || paused || finished) return
+    if (!q || finished) return
 
     const expectedKey = q.keys[keyIndexRef.current]
     if (!expectedKey) return
+    startTimer()
 
     if (key === expectedKey) {
       correctRef.current += 1
       setCorrectCount(correctRef.current)
       keystrokesRef.current += 1
       setTotalKeystrokes(keystrokesRef.current)
-      setLastFeedback({ status: 'correct', key })
+      setLastFeedback({ status: 'correct', key, keyIndex: keyIndexRef.current })
 
       if (keyIndexRef.current < q.keys.length - 1) {
         keyIndexRef.current += 1
         setKeyIndex(keyIndexRef.current)
         setCharIndex(computeCharIndex(keyIndexRef.current, q))
       } else {
+        completedQuestionsRef.current += 1
+        completedCharsRef.current += q.chars.length
+        setCompletedQuestions(completedQuestionsRef.current)
+        setCompletedChars(completedCharsRef.current)
         lqRef.current += 1
         setLevelQuestions(lqRef.current)
         historyRef.current = [...historyRef.current.slice(-7), q]
@@ -175,7 +187,7 @@ export default function useGameLogic() {
       }
       errorRecordsRef.current = [...errorRecordsRef.current, rec]
       setErrorRecords(errorRecordsRef.current)
-      setLastFeedback({ status: 'wrong', key: expectedKey, pressed: key })
+      setLastFeedback({ status: 'wrong', key: expectedKey, pressed: key, keyIndex: keyIndexRef.current })
       setIsFlashing(true)
       setTimeout(() => setIsFlashing(false), 300)
 
@@ -183,25 +195,24 @@ export default function useGameLogic() {
       for (let i = 0; i < charIndexRef.current && i < q.chars.length; i++) {
         charStart += q.chars[i].keys.length
       }
-      const keysIntoChar = keyIndexRef.current - charStart
-      correctRef.current = Math.max(0, correctRef.current - keysIntoChar)
-      setCorrectCount(correctRef.current)
-      keystrokesRef.current = Math.max(0, keystrokesRef.current - keysIntoChar)
-      setTotalKeystrokes(keystrokesRef.current)
       keyIndexRef.current = charStart
       setKeyIndex(charStart)
       setCharIndex(charIndexRef.current)
+      doLevelDown()
     }
-  }, [paused, finished, nextQuestion, doLevelUp])
+  }, [finished, nextQuestion, doLevelUp, doLevelDown, startTimer])
 
   const finish = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = null
     setFinished(true)
-    setFinishTime(Date.now())
-    setElapsed(Date.now() - startTime)
-  }, [startTime])
+    setElapsed(startTimeRef.current === null ? 0 : Date.now() - startTimeRef.current)
+  }, [])
 
   const dismissResult = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = null
+    startTimeRef.current = null
     questionRef.current = null
     keyIndexRef.current = 0
     charIndexRef.current = 0
@@ -212,23 +223,28 @@ export default function useGameLogic() {
     errorRef.current = 0
     keystrokesRef.current = 0
     lqRef.current = 0
+    completedQuestionsRef.current = 0
+    completedCharsRef.current = 0
     setCorrectCount(0)
     setErrorCount(0)
     setTotalKeystrokes(0)
+    setCompletedQuestions(0)
+    setCompletedChars(0)
     setLevelQuestions(0)
     setKeyIndex(0)
     setCharIndex(0)
     setLastFeedback(null)
     setIsFlashing(false)
-    setPaused(false)
     setFinished(false)
-    setFinishTime(null)
     setErrorRecords([])
     setQuestion(null)
-    setGameId(id => id + 1)
+    setElapsed(0)
   }, [])
 
   const restart = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = null
+    startTimeRef.current = null
     questionRef.current = null
     keyIndexRef.current = 0
     charIndexRef.current = 0
@@ -239,22 +255,24 @@ export default function useGameLogic() {
     errorRef.current = 0
     keystrokesRef.current = 0
     lqRef.current = 0
+    completedQuestionsRef.current = 0
+    completedCharsRef.current = 0
     setLevel(1)
     levelRef.current = 1
     setCorrectCount(0)
     setErrorCount(0)
     setTotalKeystrokes(0)
+    setCompletedQuestions(0)
+    setCompletedChars(0)
     setLevelQuestions(0)
     setKeyIndex(0)
     setCharIndex(0)
     setLastFeedback(null)
     setIsFlashing(false)
-    setPaused(false)
     setFinished(false)
-    setFinishTime(null)
     setErrorRecords([])
     setQuestion(null)
-    setGameId(id => id + 1)
+    setElapsed(0)
   }, [])
 
   const levelConfig = LEVEL_THRESHOLDS[level]
@@ -266,6 +284,8 @@ export default function useGameLogic() {
     correctCount,
     errorCount,
     totalKeystrokes,
+    completedQuestions,
+    completedChars,
     accuracy,
     speed,
     elapsed,
@@ -277,7 +297,6 @@ export default function useGameLogic() {
     isFlashing,
     handleKey,
     restart,
-    paused,
     finished,
     finish,
     dismissResult,
