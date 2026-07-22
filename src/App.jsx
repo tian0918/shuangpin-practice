@@ -132,7 +132,7 @@ export default function App() {
       )}
 
       <main className="app-main">
-        <section className="center-section">
+        <section className={`center-section${settings.showVirtualKeyboard ? '' : ' keyboard-hidden'}`}>
           <div className="top-area">
             <QuestionPanel
               question={question}

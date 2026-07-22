@@ -402,6 +402,11 @@ body {
   align-items: stretch;
 }
 
+.center-section.keyboard-hidden .top-area {
+  flex: 1;
+  min-height: 0;
+}
+
 .question-panel {
   flex: 1;
   background: var(--bg-panel);
