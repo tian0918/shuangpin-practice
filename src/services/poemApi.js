@@ -5,11 +5,7 @@ export const RANDOM_POEM_TYPES = ['五言绝句', '七言绝句', '五言律诗'
 const randomPoemParams = new URLSearchParams()
 RANDOM_POEM_TYPES.forEach(type => randomPoemParams.append('type', type))
 
-const poemApiBase = import.meta.env?.PROD
-  ? 'https://billy-unflowery-eliana.ngrok-free.dev/api/v1'
-  : '/poem-api'
-
-export const RANDOM_POEM_API = `${poemApiBase}/poems/random?${randomPoemParams}`
+export const RANDOM_POEM_API = `/poem-api/poems/random?${randomPoemParams}`
 
 function normalizeSyllable(value) {
   return String(value ?? '')
