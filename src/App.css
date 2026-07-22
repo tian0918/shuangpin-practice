@@ -430,6 +430,25 @@ body {
   gap: 8px;
 }
 
+.question-loading {
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.question-loading-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px var(--bg-accent-soft);
+  animation: question-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes question-loading-pulse {
+  50% { opacity: 0.35; transform: scale(0.8); }
+}
+
 .question-progress {
   margin-left: auto;
   color: var(--text-dim);
@@ -437,6 +456,19 @@ body {
   letter-spacing: 0;
   text-transform: none;
   font-variant-numeric: tabular-nums;
+}
+
+.question-source {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .type-badge {
@@ -480,6 +512,25 @@ body {
   justify-content: center;
   gap: 10px 6px;
   width: 100%;
+}
+
+.poem-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.poem-line {
+  align-items: flex-end;
+}
+
+.poem-punctuation {
+  padding-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .syllable-unit {
@@ -1114,6 +1165,15 @@ body {
 
   .syllable-unit .char-unit {
     font-size: 42px;
+  }
+
+  .poem-lines {
+    gap: 8px;
+  }
+
+  .poem-punctuation {
+    padding-bottom: 10px;
+    font-size: 30px;
   }
 
   .stats-panel {

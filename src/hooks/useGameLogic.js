@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { PINYIN_DB, LEVEL_THRESHOLDS } from '../data/pinyinDb'
 import { pickQuestion } from '../utils/questionPicker'
 import { applyInputMode } from '../utils/inputMode'
+import { fetchRandomPoemQuestions } from '../services/poemApi'
 
 export default function useGameLogic(inputMode = 'shuangpin') {
   const [level, setLevel] = useState(3)
@@ -35,6 +36,10 @@ export default function useGameLogic(inputMode = 'shuangpin') {
   const completedQuestionsRef = useRef(0)
   const completedCharsRef = useRef(0)
   const errorRecordsRef = useRef([])
+  const inputModeRef = useRef(inputMode)
+  const poemQueueRef = useRef([])
+  const isLoadingQuestionRef = useRef(false)
+  const poemRetryAtRef = useRef(0)
 
   const accuracy = totalKeystrokes === 0 ? 100
     : Math.round((correctCount / (correctCount + errorCount)) * 100)
@@ -90,18 +95,39 @@ export default function useGameLogic(inputMode = 'shuangpin') {
     lqRef.current = 0
   }, [])
 
-  const nextQuestion = useCallback(() => {
-    const pool = getPool(levelRef.current)
-    const picked = pickQuestion(pool, errorMapRef.current, levelRef.current, historyRef.current)
-    const q = applyInputMode(picked, inputMode)
-    questionRef.current = q
-    keyIndexRef.current = 0
-    charIndexRef.current = 0
-    setQuestion(q)
-    setKeyIndex(0)
-    setCharIndex(0)
-    setLastFeedback(null)
-  }, [getPool, inputMode])
+  const nextQuestion = useCallback(async () => {
+    if (isLoadingQuestionRef.current) return
+    isLoadingQuestionRef.current = true
+
+    try {
+      if (poemQueueRef.current.length === 0 && Date.now() >= poemRetryAtRef.current) {
+        try {
+          poemQueueRef.current = await fetchRandomPoemQuestions()
+          poemRetryAtRef.current = 0
+        } catch (error) {
+          console.warn('随机诗词加载失败，暂时使用本地题库。', error)
+          poemRetryAtRef.current = Date.now() + 30000
+        }
+      }
+
+      let picked = poemQueueRef.current.shift()
+      if (!picked) {
+        const pool = getPool(levelRef.current)
+        picked = pickQuestion(pool, errorMapRef.current, levelRef.current, historyRef.current)
+      }
+
+      const q = applyInputMode(picked, inputModeRef.current)
+      questionRef.current = q
+      keyIndexRef.current = 0
+      charIndexRef.current = 0
+      setQuestion(q)
+      setKeyIndex(0)
+      setCharIndex(0)
+      setLastFeedback(null)
+    } finally {
+      isLoadingQuestionRef.current = false
+    }
+  }, [getPool])
 
   const startTimer = useCallback(() => {
     if (timerRef.current || startTimeRef.current !== null) return
@@ -127,6 +153,10 @@ export default function useGameLogic(inputMode = 'shuangpin') {
   useEffect(() => {
     keyIndexRef.current = keyIndex
   }, [keyIndex])
+
+  useEffect(() => {
+    inputModeRef.current = inputMode
+  }, [inputMode])
 
   useEffect(() => {
     charIndexRef.current = charIndex
@@ -165,6 +195,7 @@ export default function useGameLogic(inputMode = 'shuangpin') {
         setLevelQuestions(lqRef.current)
         historyRef.current = [...historyRef.current.slice(-7), q]
         doLevelUp()
+        questionRef.current = null
         setTimeout(() => nextQuestion(), 200)
       }
     } else {
@@ -221,6 +252,8 @@ export default function useGameLogic(inputMode = 'shuangpin') {
     errorMapRef.current = {}
     historyRef.current = []
     errorRecordsRef.current = []
+    poemQueueRef.current = []
+    poemRetryAtRef.current = 0
     correctRef.current = 0
     errorRef.current = 0
     keystrokesRef.current = 0
@@ -253,6 +286,8 @@ export default function useGameLogic(inputMode = 'shuangpin') {
     errorMapRef.current = {}
     historyRef.current = []
     errorRecordsRef.current = []
+    poemQueueRef.current = []
+    poemRetryAtRef.current = 0
     correctRef.current = 0
     errorRef.current = 0
     keystrokesRef.current = 0

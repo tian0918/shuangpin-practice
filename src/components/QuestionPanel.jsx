@@ -1,5 +1,28 @@
+const HAN_CHARACTER = /\p{Script=Han}/u
+
+function getPoemDisplayLines(question) {
+  if (!question.displayLines?.length) return null
+
+  let charIndex = 0
+  return question.displayLines.map(line => [...line].map(symbol => {
+    if (HAN_CHARACTER.test(symbol)) {
+      const unit = { type: 'char', char: question.chars[charIndex], charIndex }
+      charIndex += 1
+      return unit
+    }
+    return { type: 'punctuation', symbol }
+  }))
+}
+
 export default function QuestionPanel({ question, keyIndex, lastFeedback, showKeySequence = true }) {
-  if (!question) return null
+  if (!question) {
+    return (
+      <div className="question-panel question-loading" role="status">
+        <span className="question-loading-dot" aria-hidden="true" />
+        <span>正在加载随机诗词…</span>
+      </div>
+    )
+  }
 
   const isMulti = question.chars && question.chars.length > 1
   const activeCharIndex = question.chars.findIndex((_, index) => {
@@ -16,10 +39,32 @@ export default function QuestionPanel({ question, keyIndex, lastFeedback, showKe
     return { start, end: keyStart - 1 }
   })
 
+  const poemDisplayLines = getPoemDisplayLines(question)
+  const renderSyllable = (ch, ci, key = ci) => {
+    const range = charKeyRanges[ci]
+    const isActive = keyIndex >= range.start && keyIndex <= range.end
+    const isDone = keyIndex > range.end
+    let cls = 'syllable-unit'
+    if (isDone) cls += ' done'
+    if (isActive) cls += ' active'
+    return (
+      <span key={key} className={cls}>
+        <span className="pinyin-unit">{ch.pinyin}</span>
+        <span className="char-unit">{ch.char}</span>
+      </span>
+    )
+  }
+
   return (
     <div className="question-panel">
       <div className="question-header">
         <span className="type-badge">{question.typeLabel}</span>
+        {question.sourceLabel && (
+          <span className="question-source" title={question.sourceLabel}>
+            {question.sourceLabel}
+            {question.lineCount > 1 && ` · ${question.lineIndex + 1}/${question.lineCount}`}
+          </span>
+        )}
         <span className="question-progress">
           第 {Math.max(1, activeCharIndex + 1)} / {question.chars.length} 字
         </span>
@@ -27,24 +72,25 @@ export default function QuestionPanel({ question, keyIndex, lastFeedback, showKe
 
       <div className="question-main">
         {isMulti ? (
-          <>
-            <div className="syllables-row">
-              {question.chars.map((ch, ci) => {
-                const range = charKeyRanges[ci]
-                const isActive = keyIndex >= range.start && keyIndex <= range.end
-                const isDone = keyIndex > range.end
-                let cls = 'syllable-unit'
-                if (isDone) cls += ' done'
-                if (isActive) cls += ' active'
-                return (
-                  <span key={ci} className={cls}>
-                    <span className="pinyin-unit">{ch.pinyin}</span>
-                    <span className="char-unit">{ch.char}</span>
-                  </span>
-                )
-              })}
+          poemDisplayLines ? (
+            <div className="poem-lines">
+              {poemDisplayLines.map((line, lineIndex) => (
+                <div className="syllables-row poem-line" key={lineIndex}>
+                  {line.map((unit, unitIndex) => unit.type === 'char'
+                    ? renderSyllable(unit.char, unit.charIndex, `${lineIndex}-${unitIndex}`)
+                    : (
+                      <span className="poem-punctuation" key={`${lineIndex}-${unitIndex}`}>
+                        {unit.symbol}
+                      </span>
+                    ))}
+                </div>
+              ))}
             </div>
-          </>
+          ) : (
+            <div className="syllables-row">
+              {question.chars.map((ch, ci) => renderSyllable(ch, ci))}
+            </div>
+          )
         ) : (
           <>
             <div className="pinyin-display">{question.pinyin}</div>
