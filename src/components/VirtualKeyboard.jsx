@@ -1,8 +1,10 @@
 import { KEYBOARD_ROWS } from '../data/xiaoheMapping'
+import FingeringGuide from './FingeringGuide'
 
 export default function VirtualKeyboard({ inputMode = 'shuangpin', question, keyIndex, lastFeedback, onKeyClick }) {
   const isFullPinyin = inputMode === 'fullPinyin'
   const expectedKey = question?.keys?.[keyIndex]?.toLowerCase()
+  const isExpectedKeyLetter = /^[a-z]$/.test(expectedKey || '')
 
   const getKeyClass = (k) => {
     let cls = 'vk-key'
@@ -19,11 +21,11 @@ export default function VirtualKeyboard({ inputMode = 'shuangpin', question, key
       }
     }
 
-    if (expectedKey && k.key === expectedKey && !k.punct) {
+    if (expectedKey && k.key === expectedKey) {
       cls += ' target'
     }
 
-    if (question && !k.punct && question.keys.slice(0, keyIndex).includes(k.key)) {
+    if (question && k.key !== expectedKey && question.keys.slice(0, keyIndex).includes(k.key)) {
       cls += ' used'
     }
 
@@ -45,9 +47,18 @@ export default function VirtualKeyboard({ inputMode = 'shuangpin', question, key
           </span>
         </div>
         <span className="keyboard-target-label">
-          目标键 <strong>{expectedKey?.toUpperCase() || '—'}</strong>
+          目标键 <strong>
+            <span>{expectedKey?.toUpperCase() || '—'}</span>
+            {isExpectedKeyLetter && (
+              <span className="keyboard-target-lowercase">{expectedKey}</span>
+            )}
+          </strong>
         </span>
       </div>
+      <FingeringGuide
+        activeKey={expectedKey}
+        animationKey={`${question?.content || 'loading'}-${keyIndex}`}
+      />
       <div className="keyboard-scroll">
         <div className="keyboard-layout">
           {KEYBOARD_ROWS.map((row, ri) => (
@@ -55,12 +66,19 @@ export default function VirtualKeyboard({ inputMode = 'shuangpin', question, key
               {row.map((k) => (
                 <button
                   type="button"
-                  aria-label={`按键 ${k.labelTop}`}
+                  aria-label={/^[a-z]$/.test(k.key)
+                    ? `按键 ${k.labelTop}，小写 ${k.key}`
+                    : `按键 ${k.labelTop}`}
                   key={k.key}
                   className={getKeyClass(k)}
                   onClick={() => handleClick(k)}
                 >
-                  <span className="vk-key-top">{k.labelTop}</span>
+                  <span className="vk-key-top">
+                    <span>{k.labelTop}</span>
+                    {/^[a-z]$/.test(k.key) && (
+                      <span className="vk-key-lowercase">{k.key}</span>
+                    )}
+                  </span>
                   {!isFullPinyin && k.labelBottom && !k.wide && (
                     <span className="vk-key-bottom">{k.labelBottom}</span>
                   )}

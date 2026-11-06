@@ -34,6 +34,14 @@
   --text-error-context: #888;
   --text-error-pinyin: #aaa;
 
+  --hand-fill: #24294d;
+  --hand-border: #4b557f;
+  --finger-pinky: #f28cab;
+  --finger-ring: #eebc58;
+  --finger-middle: #5bd0b2;
+  --finger-index: #7f98ff;
+  --finger-thumb: #b58cff;
+
   --border-key: #333;
   --border-punct: #2a2a4a;
   --border-btn: #444;
@@ -92,6 +100,14 @@
   --text-vk-bottom: #999;
   --text-error-context: #666;
   --text-error-pinyin: #888;
+
+  --hand-fill: #dfe5f3;
+  --hand-border: #9aa7c7;
+  --finger-pinky: #c54f78;
+  --finger-ring: #a66a00;
+  --finger-middle: #167b68;
+  --finger-index: #4d63c9;
+  --finger-thumb: #7851b8;
 
   --border-key: #ccc;
   --border-punct: #ccc;
@@ -612,18 +628,34 @@ body {
 
 .key-chip {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-width: 38px;
   height: 38px;
   border: 1px solid var(--border-key);
   border-radius: 9px;
-  font-size: 16px;
   font-weight: 700;
+  line-height: 1;
   color: var(--text-tertiary);
   background: var(--bg-key);
   transition: all 0.15s;
   padding: 0 6px;
+}
+
+.key-chip-uppercase {
+  font-size: 15px;
+}
+
+.key-chip-lowercase {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.key-chip.active .key-chip-lowercase {
+  color: var(--accent);
 }
 
 .key-chip.active {
@@ -651,8 +683,16 @@ body {
   color: var(--correct);
 }
 
+.key-chip.correct .key-chip-lowercase {
+  color: var(--correct);
+}
+
 .key-chip.wrong {
   border-color: var(--error);
+  color: var(--error);
+}
+
+.key-chip.wrong .key-chip-lowercase {
   color: var(--error);
 }
 
@@ -913,9 +953,166 @@ body {
 }
 
 .keyboard-target-label strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   margin-left: 4px;
   color: var(--accent);
   font-size: 15px;
+}
+
+.keyboard-target-lowercase {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.finger-guide {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) minmax(128px, auto) minmax(100px, 1fr);
+  align-items: end;
+  gap: 12px;
+  min-height: 66px;
+  padding: 7px 14px 6px;
+  overflow: hidden;
+  background: var(--bg-stat-card);
+  border: 1px solid var(--border-panel);
+  border-radius: 12px;
+}
+
+.finger-guide__hand-slot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.finger-guide__hand-slot:last-child {
+  justify-content: flex-start;
+}
+
+.finger-guide__hand {
+  width: 104px;
+  opacity: 0.42;
+  transition: opacity 0.2s;
+}
+
+.finger-guide__hand.is-active {
+  opacity: 1;
+}
+
+.finger-guide__fingers {
+  display: flex;
+  height: 31px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 7px;
+}
+
+.finger-guide__finger {
+  position: relative;
+  width: 14px;
+  height: 25px;
+  flex: 0 0 auto;
+  background: var(--hand-fill);
+  border: 1px solid var(--hand-border);
+  border-radius: 8px 8px 4px 4px;
+  transform-origin: bottom center;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.finger-guide__finger--pinky {
+  --finger-color: var(--finger-pinky);
+  height: 19px;
+}
+
+.finger-guide__finger--ring {
+  --finger-color: var(--finger-ring);
+  height: 26px;
+}
+
+.finger-guide__finger--middle {
+  --finger-color: var(--finger-middle);
+  height: 30px;
+}
+
+.finger-guide__finger--index {
+  --finger-color: var(--finger-index);
+  height: 27px;
+}
+
+.finger-guide__finger--thumb {
+  --finger-color: var(--finger-thumb);
+  width: 18px;
+  height: 16px;
+  border-radius: 8px 8px 5px 5px;
+}
+
+.finger-guide__finger.is-target {
+  z-index: 1;
+  background: var(--finger-color);
+  border-color: var(--finger-color);
+  box-shadow: 0 0 0 3px var(--bg-accent-soft), 0 0 13px var(--finger-color);
+  animation: finger-guide-reach 1.1s ease-in-out infinite;
+}
+
+.finger-guide__palm {
+  display: flex;
+  width: 92px;
+  height: 21px;
+  margin: -1px auto 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  background: var(--hand-fill);
+  border: 1px solid var(--hand-border);
+  border-radius: 4px 4px 12px 12px;
+  font-size: 9px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.finger-guide__hand.is-active .finger-guide__palm {
+  color: var(--text-primary);
+  border-color: var(--active-finger-color);
+}
+
+.finger-guide__status {
+  display: flex;
+  min-width: 0;
+  align-self: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.finger-guide__status strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.finger-guide__eyebrow {
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes finger-guide-reach {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(4px) scale(0.96); }
 }
 
 .keyboard-scroll {
@@ -1021,7 +1218,7 @@ body {
   box-shadow: 0 3px 0 var(--accent), 0 0 0 4px var(--bg-accent-soft);
 }
 
-.vk-key.used {
+.vk-key.used:not(.feedback-correct):not(.feedback-wrong):not(.target) {
   border-color: var(--text-secondary);
   color: var(--text-secondary);
   background: var(--bg-key-used);
@@ -1029,8 +1226,17 @@ body {
 }
 
 .vk-key-top {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   font-size: 20px;
   font-weight: 700;
+}
+
+.vk-key-lowercase {
+  color: var(--text-vk-bottom);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .vk-key-bottom {
@@ -1075,6 +1281,22 @@ body {
     padding-top: 10px;
     padding-bottom: 11px;
     gap: 7px;
+  }
+
+  .finger-guide {
+    min-height: 54px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .finger-guide__fingers {
+    height: 26px;
+    transform: scale(0.86);
+    transform-origin: bottom center;
+  }
+
+  .finger-guide__palm {
+    height: 17px;
   }
 
   .vk-key {
@@ -1194,6 +1416,32 @@ body {
     padding: 15px 12px 16px;
   }
 
+  .finger-guide {
+    grid-template-columns: minmax(0, 1fr) minmax(92px, auto) minmax(0, 1fr);
+    gap: 5px;
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .finger-guide__hand {
+    width: 72px;
+  }
+
+  .finger-guide__fingers {
+    padding-right: 0;
+    padding-left: 0;
+    transform: scale(0.78);
+    transform-origin: bottom center;
+  }
+
+  .finger-guide__palm {
+    width: 68px;
+  }
+
+  .finger-guide__status strong {
+    font-size: 11px;
+  }
+
   .modal-content {
     padding: 30px 20px;
   }
@@ -1205,6 +1453,11 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .finger-guide__finger.is-target {
+    animation: none;
+    transform: translateY(2px);
   }
 }
 

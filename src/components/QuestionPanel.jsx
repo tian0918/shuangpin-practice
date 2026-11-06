@@ -103,23 +103,27 @@ export default function QuestionPanel({ question, keyIndex, lastFeedback, showKe
         <span className="key-sequence-label">按键序列</span>
         <div className="keys-row">
           {question.keys.map((k, i) => {
-          let cls = 'key-chip'
-          if (i < keyIndex) cls += ' done'
-          else if (i === keyIndex) cls += ' active'
+            let cls = 'key-chip'
+            if (i < keyIndex) cls += ' done'
+            else if (i === keyIndex) cls += ' active'
 
-          let fb = ''
-          if (lastFeedback && i === lastFeedback.keyIndex) {
-            fb = lastFeedback.status === 'correct' ? ' correct' : ' wrong'
-          }
+            let fb = ''
+            if (lastFeedback && i === lastFeedback.keyIndex) {
+              fb = lastFeedback.status === 'correct' ? ' correct' : ' wrong'
+            }
 
-          const ci = question.chars.findIndex((_, idx) => {
-            const range = charKeyRanges[idx]
-            return i >= range.start && i <= range.end
-          })
+            const ci = question.chars.findIndex((_, idx) => {
+              const range = charKeyRanges[idx]
+              return i >= range.start && i <= range.end
+            })
+            const isLetterKey = /^[a-z]$/i.test(k)
 
             return (
               <span key={i} className={`${cls}${fb} char-group-${ci}`}>
-                {k.toUpperCase()}
+                <span className="key-chip-uppercase">{k.toUpperCase()}</span>
+                {isLetterKey && (
+                  <span className="key-chip-lowercase">{k.toLowerCase()}</span>
+                )}
               </span>
             )
           })}
